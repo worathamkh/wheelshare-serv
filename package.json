@@ -19,6 +19,7 @@
   "homepage": "https://github.com/worathamkh/wheelshare-serv#readme",
   "dependencies": {
     "express": "^4.15.3",
-    "firebase-admin": "^5.0.0"
+    "firebase-admin": "^5.0.0",
+    "node-dijkstra": "^2.5.0"
   }
 }
