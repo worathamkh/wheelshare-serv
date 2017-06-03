@@ -23,7 +23,7 @@ let data = {};
 firebase.database().ref('/')
   .on('value',
     (snapshot) => {
-      data = snapshop.val();
+      data = snapshot.val();
     });
 
 app.get('/api/all', (req, res) => {
