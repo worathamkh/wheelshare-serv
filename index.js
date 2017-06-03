@@ -75,7 +75,7 @@ firebase.database().ref('/')
       data = snapshot.val()
       data.vertices.forEach((v) => {
         let dadj = {}
-        let sadj
+        // let sadj = {}
         v.adjPaths.forEach((pid) => {
           for (let i = 0; i < data.paths.length; i++) {
             let q = data.paths[i];
@@ -84,11 +84,11 @@ firebase.database().ref('/')
               if (q.run[0].id == v.id) {
                 // console.log('dadj[' + encId(q.run[1].id) + '] = ' + q.distance)
                 dadj[encId(q.run[1].id)] = q.distance
-                sadj[encId(q.run[1].id)] = q.safety
+                // sadj[encId(q.run[1].id)] = q.safety
               } else {
                 // console.log('dadj[' + encId(q.run[0].id) + '] = ' + q.distance)
                 dadj[encId(q.run[0].id)] = q.distance
-                sadj[encId(q.run[0].id)] = q.safety
+                // sadj[encId(q.run[0].id)] = q.safety
               }
               break
             }
@@ -98,7 +98,7 @@ firebase.database().ref('/')
         console.log('adding node ', id);
         console.log('dadj: ', JSON.stringify(dadj, null, 2))
         dmap.addNode(id, dadj)
-        smap.addNode(id, sadj)
+        // smap.addNode(id, sadj)
       })
     })
 
