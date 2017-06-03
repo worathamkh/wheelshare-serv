@@ -1,39 +1,49 @@
-'use strict';
+'use strict'
 
-const firebase = require('firebase-admin');
+const firebase = require('firebase-admin')
 // let Promise = require('promise');
 // let escape = require('escape-html');
 // let serviceAccount = require('./secrets.json');
-const serviceAccount = require('./config/serviceAccount.js');
+const serviceAccount = require('./config/serviceAccount.js')
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
   databaseURL: 'https://forward-vial-168614.firebaseio.com'
-});
+})
 
-const express = require('express');
-let app = express();
+const express = require('express')
+const Graph = require('node-dijkstra')
 
-app.set('port', (process.env.PORT || 5000));
+const route = new Graph()
+
+route.addNode('A', { B: 1 })
+route.addNode('B', { A: 1, C: 2, D: 4 })
+route.addNode('C', { B: 2, D: 1 })
+route.addNode('D', { C: 1, B: 4 })
+
+route.path('A', 'D') // => [ 'A', 'B', 'C', 'D' ]
+let app = express()
+
+app.set('port', (process.env.PORT || 5000))
 
 app.get('/', (req, res) => {
-  res.json({ foo: 'bar' });
-});
+  res.json({ foo: 'bar' })
+})
 
-let data = {};
+let data = {}
 firebase.database().ref('/')
   .on('value',
     (snapshot) => {
-      data = snapshot.val();
-    });
+      data = snapshot.val()
+    })
 
 app.get('/api/all', (req, res) => {
-  res.json(data);
-});
+  res.json(data)
+})
 
 app.get('/api/shortest', (req, res) => {
-  console.log(JSON.stringify(res.query, null, 2));
+  console.log(JSON.stringify(res.query, null, 2))
 })
 
 app.listen(app.get('port'), () => {
-  console.log('Node app is running on port', app.get('port'));
-});
+  console.log('Node app is running on port', app.get('port'))
+})
