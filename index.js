@@ -13,17 +13,19 @@ firebase.initializeApp({
 const express = require('express')
 const Graph = require('node-dijkstra')
 
-const route = new Graph()
+const map = new Graph()
 
-route.addNode('A', { B: 1 })
-route.addNode('B', { A: 1, C: 2, D: 4 })
-route.addNode('C', { B: 2, D: 1 })
-route.addNode('D', { C: 1, B: 4 })
+// route.addNode('A', { B: 1 })
+// route.addNode('B', { A: 1, C: 2, D: 4 })
+// route.addNode('C', { B: 2, D: 1 })
+// route.addNode('D', { C: 1, B: 4 })
+//
+// route.path('A', 'D') // => [ 'A', 'B', 'C', 'D' ]
 
-route.path('A', 'D') // => [ 'A', 'B', 'C', 'D' ]
 let app = express()
 
 app.set('port', (process.env.PORT || 5000))
+app.set('json spaces', 2)
 
 app.get('/', (req, res) => {
   res.json({ foo: 'bar' })
@@ -34,6 +36,13 @@ firebase.database().ref('/')
   .on('value',
     (snapshot) => {
       data = snapshot.val()
+      // data.vertices.forEach((v) => {
+      //   let adj = {}
+      //   v.adjPaths
+      //   map.addNode(v.id.toString(), v.adjPaths.map((p) => {
+      //     let e = data.paths.find(q => return p.id == q.id)
+      //   }))
+      // })
     })
 
 app.get('/api/all', (req, res) => {
