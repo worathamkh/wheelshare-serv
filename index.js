@@ -13,7 +13,10 @@ firebase.initializeApp({
 const express = require('express')
 const Graph = require('node-dijkstra')
 
-const map = new Graph()
+// distance map
+const dmap = new Graph()
+// safety map
+const smap = new Graph()
 
 // route.addNode('A', { B: 1 })
 // route.addNode('B', { A: 1, C: 2, D: 4 })
@@ -31,18 +34,72 @@ app.get('/', (req, res) => {
   res.json({ foo: 'bar' })
 })
 
+function encId(id) {
+  return id.toString()
+
+  let str = ''
+  if (id < 0) {
+    str += 'b'
+  } else {
+    str += 'a'
+  }
+  let idstr = id.toString()
+  for (let i = 0; i < idstr.length; i++) {
+    if (idstr[i] == '-') {
+      continue
+    }
+    str += String.fromCharCode('a'.charCodeAt(0) + parseInt(idstr[i]))
+  }
+  return str
+}
+
+function decId(str) {
+  return parseInt(str)
+
+  let idstr = ''
+  if (str[0] == 'b') {
+    idstr += '-'
+  }
+  for (let i = 1; i < str.length; i++) {
+    idstr += String.fromCharCode(str[i].charCodeAt(0) - 'a'.charCodeAt(0))
+  }
+  let id = parseInt(idstr)
+  return id
+}
+
 let data = {}
 firebase.database().ref('/')
   .on('value',
     (snapshot) => {
+      console.log('data loaded')
       data = snapshot.val()
-      // data.vertices.forEach((v) => {
-      //   let adj = {}
-      //   v.adjPaths
-      //   map.addNode(v.id.toString(), v.adjPaths.map((p) => {
-      //     let e = data.paths.find(q => return p.id == q.id)
-      //   }))
-      // })
+      data.vertices.forEach((v) => {
+        let dadj = {}
+        let sadj
+        v.adjPaths.forEach((pid) => {
+          for (let i = 0; i < data.paths.length; i++) {
+            let q = data.paths[i];
+            // console.log(pid, '==', q.id, pid == q.id)
+            if (pid == q.id) {
+              if (q.run[0].id == v.id) {
+                // console.log('dadj[' + encId(q.run[1].id) + '] = ' + q.distance)
+                dadj[encId(q.run[1].id)] = q.distance
+                sadj[encId(q.run[1].id)] = q.safety
+              } else {
+                // console.log('dadj[' + encId(q.run[0].id) + '] = ' + q.distance)
+                dadj[encId(q.run[0].id)] = q.distance
+                sadj[encId(q.run[0].id)] = q.safety
+              }
+              break
+            }
+          }
+        })
+        let id = encId(v.id)
+        console.log('adding node ', id);
+        console.log('dadj: ', JSON.stringify(dadj, null, 2))
+        dmap.addNode(id, dadj)
+        smap.addNode(id, sadj)
+      })
     })
 
 app.get('/api/all', (req, res) => {
@@ -50,7 +107,12 @@ app.get('/api/all', (req, res) => {
 })
 
 app.get('/api/shortest', (req, res) => {
-  console.log(JSON.stringify(res.query, null, 2))
+  res.json(dmap.path(
+    encId(req.query.from),
+    encId(req.query.to),
+    {
+      cost: true
+    }))
 })
 
 app.listen(app.get('port'), () => {
