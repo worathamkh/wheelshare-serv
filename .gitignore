@@ -1,6 +1,18 @@
 **/secrets.json
 **/firebase-debug.log
-**/node_modules
 **/bower_components
 **/*.bak
 .idea
+
+# Node build artifacts
+node_modules
+npm-debug.log
+
+# Local development
+*.env
+*.dev
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.yml
