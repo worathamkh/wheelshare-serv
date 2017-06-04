@@ -34,6 +34,16 @@ app.get('/', (req, res) => {
   res.json({ foo: 'bar' })
 })
 
+function hashCode(str){
+  let hash = 0;
+  if (str.length == 0) return hash;
+  for (let i = 0; i < str.length; i++) {
+    let char = str.charCodeAt(i);
+    hash = ((hash<<5)-hash)+char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
 function encId(id) {
   return id.toString()
 
@@ -108,12 +118,21 @@ app.get('/api/all', (req, res) => {
 })
 
 app.get('/api/shortest', (req, res) => {
-  res.json(dmap.path(
+  let s = dmap.path(
     encId(req.query.from),
     encId(req.query.to),
     {
       cost: true
-    }))
+    })
+  let paths = []
+  for (let i = 0; i < s.path.length-1; i++) {
+    // s.path[i] is a vertex
+    paths.push(hashCode((s.path[i] * s.path[i+1]).toString()))
+  }
+  res.json({
+    paths: paths,
+    cost: s.cost
+  })
 })
 
 app.listen(app.get('port'), () => {
