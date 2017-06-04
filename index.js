@@ -137,7 +137,7 @@ app.get('/api/shortest', (req, res) => {
   })
 })
 
-app.listen('/api/edit', (req, res) => {
+app.get('/api/edit', (req, res) => {
   if (req.pass != 'hello') {
     res.json({success: false})
   }
