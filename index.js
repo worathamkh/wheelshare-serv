@@ -138,18 +138,17 @@ app.get('/api/shortest', (req, res) => {
 })
 
 app.get('/api/edit', (req, res) => {
-  if (req.pass != 'hello') {
-    res.json({success: false})
-  }
-  for (let i = 0; i < data.paths.length; i++) {
-    if (data.paths[i].id == req.query.id) {
-      firebase.database().ref('/paths/' + i).set({
-        safety: req.query.safety
-      })
-      break
+  let success = false
+  if (req.query.pass == 'hello') {
+    for (let i = 0; i < data.paths.length; i++) {
+      if (data.paths[i].id == req.query.id) {
+        firebase.database().ref('/paths/' + i + '/safety').set(parseInt(req.query.safety))
+        success = true
+        break
+      }
     }
   }
-  res.json({success: true})
+  res.json({success})
 })
 
 app.listen(app.get('port'), () => {

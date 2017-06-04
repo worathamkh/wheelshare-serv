@@ -2,6 +2,7 @@
 **/firebase-debug.log
 **/bower_components
 **/*.bak
+**/*.swp
 .idea
 
 # Node build artifacts
