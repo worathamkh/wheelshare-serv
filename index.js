@@ -87,6 +87,9 @@ firebase.database().ref('/')
       data.vertices.forEach((v) => {
         let dadj = {}
         // let sadj = {}
+        if (!v.adjPaths) {
+          return
+        }
         v.adjPaths.forEach((pid) => {
           for (let i = 0; i < data.paths.length; i++) {
             let q = data.paths[i];
