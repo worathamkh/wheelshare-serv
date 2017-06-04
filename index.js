@@ -14,9 +14,9 @@ const express = require('express')
 const Graph = require('node-dijkstra')
 
 // distance map
-const dmap = new Graph()
+let dmap// = new Graph()
 // safety map
-const smap = new Graph()
+//const smap = new Graph()
 
 // route.addNode('A', { B: 1 })
 // route.addNode('B', { A: 1, C: 2, D: 4 })
@@ -73,6 +73,7 @@ firebase.database().ref('/')
     (snapshot) => {
       console.log('data loaded')
       data = snapshot.val()
+      dmap = new Graph()
       data.vertices.forEach((v) => {
         let dadj = {}
         // let sadj = {}
