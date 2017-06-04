@@ -137,6 +137,21 @@ app.get('/api/shortest', (req, res) => {
   })
 })
 
+app.listen('/api/edit', (req, res) => {
+  if (req.pass != 'hello') {
+    res.json({success: false})
+  }
+  for (let i = 0; i < data.paths.length; i++) {
+    if (data.paths[i].id == req.query.id) {
+      firebase.database().ref('/paths/' + i).set({
+        safety: req.query.safety
+      })
+      break
+    }
+  }
+  res.json({success: true})
+})
+
 app.listen(app.get('port'), () => {
   console.log('Node app is running on port', app.get('port'))
 })
