@@ -125,9 +125,11 @@ app.get('/api/shortest', (req, res) => {
       cost: true
     })
   let paths = []
-  for (let i = 0; i < s.path.length-1; i++) {
-    // s.path[i] is a vertex
-    paths.push(hashCode((s.path[i] * s.path[i+1]).toString()))
+  if (s.path) {
+      for (let i = 0; i < s.path.length-1; i++) {
+        // s.path[i] is a vertex
+        paths.push(hashCode((s.path[i] * s.path[i+1]).toString()))
+      }
   }
   res.json({
     paths: paths,
