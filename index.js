@@ -101,18 +101,18 @@ firebase.database().ref('/')
           if (pid == q.id) {
             if (q.run[0].id == v.id) {
               dadj[encId(q.run[1].id)] = q.distance
-              sadj[encId(q.run[1].id)] = 4 - q.safety
+              sadj[encId(q.run[1].id)] = (4 - q.safety) * q.distance
             } else {
               dadj[encId(q.run[0].id)] = q.distance
-              sadj[encId(q.run[0].id)] = 4 - q.safety
+              sadj[encId(q.run[0].id)] = (4 - q.safety) * q.distance
             }
             break
           }
         }
       })
       let id = encId(v.id)
-      console.log('adding node ', id);
-      console.log('dadj: ', JSON.stringify(dadj, null, 2))
+      //console.log('adding node ', id);
+      //console.log('dadj: ', JSON.stringify(dadj, null, 2))
       dmap.addNode(id, dadj)
       smap.addNode(id, sadj)
     })
