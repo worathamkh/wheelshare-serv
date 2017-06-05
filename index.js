@@ -16,14 +16,7 @@ const Graph = require('node-dijkstra')
 // distance map
 let dmap// = new Graph()
 // safety map
-//const smap = new Graph()
-
-// route.addNode('A', { B: 1 })
-// route.addNode('B', { A: 1, C: 2, D: 4 })
-// route.addNode('C', { B: 2, D: 1 })
-// route.addNode('D', { C: 1, B: 4 })
-//
-// route.path('A', 'D') // => [ 'A', 'B', 'C', 'D' ]
+let smap// = new Graph()
 
 let app = express()
 
@@ -84,25 +77,23 @@ firebase.database().ref('/')
       console.log('data loaded')
       data = snapshot.val()
       dmap = new Graph()
+      smap = new Graph()
       data.vertices.forEach((v) => {
         let dadj = {}
-        // let sadj = {}
+        let sadj = {}
         if (!v.adjPaths) {
           return
         }
         v.adjPaths.forEach((pid) => {
           for (let i = 0; i < data.paths.length; i++) {
             let q = data.paths[i];
-            // console.log(pid, '==', q.id, pid == q.id)
             if (pid == q.id) {
               if (q.run[0].id == v.id) {
-                // console.log('dadj[' + encId(q.run[1].id) + '] = ' + q.distance)
                 dadj[encId(q.run[1].id)] = q.distance
-                // sadj[encId(q.run[1].id)] = q.safety
+                sadj[encId(q.run[1].id)] = 6 - q.safety
               } else {
-                // console.log('dadj[' + encId(q.run[0].id) + '] = ' + q.distance)
                 dadj[encId(q.run[0].id)] = q.distance
-                // sadj[encId(q.run[0].id)] = q.safety
+                sadj[encId(q.run[0].id)] = 6 - q.safety
               }
               break
             }
@@ -112,7 +103,7 @@ firebase.database().ref('/')
         console.log('adding node ', id);
         console.log('dadj: ', JSON.stringify(dadj, null, 2))
         dmap.addNode(id, dadj)
-        // smap.addNode(id, sadj)
+        smap.addNode(id, sadj)
       })
     })
 
