@@ -1,10 +1,12 @@
 'use strict'
 
+const _ = require('lodash')
+
 const firebase = require('firebase-admin')
 // let Promise = require('promise');
 // let escape = require('escape-html');
-// let serviceAccount = require('./secrets.json');
 const serviceAccount = require('./config/serviceAccount.js')
+
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
   databaseURL: 'https://forward-vial-168614.firebaseio.com'
@@ -22,10 +24,6 @@ let app = express()
 
 app.set('port', (process.env.PORT || 5000))
 app.set('json spaces', 2)
-
-app.get('/', (req, res) => {
-  res.json({ foo: 'bar' })
-})
 
 function hashCode(str){
   let hash = 0;
@@ -72,77 +70,120 @@ function decId(str) {
 
 let data = {}
 firebase.database().ref('/')
-  .on('value',
-    (snapshot) => {
-      console.log('data loaded')
-      data = snapshot.val()
-      dmap = new Graph()
-      smap = new Graph()
-      data.vertices.forEach((v) => {
-        let dadj = {}
-        let sadj = {}
-        if (!v.adjPaths) {
-          return
-        }
-        v.adjPaths.forEach((pid) => {
-          for (let i = 0; i < data.paths.length; i++) {
-            let q = data.paths[i];
-            if (pid == q.id) {
-              if (q.run[0].id == v.id) {
-                dadj[encId(q.run[1].id)] = q.distance
-                sadj[encId(q.run[1].id)] = 6 - q.safety
-              } else {
-                dadj[encId(q.run[0].id)] = q.distance
-                sadj[encId(q.run[0].id)] = 6 - q.safety
-              }
-              break
-            }
-          }
-        })
-        let id = encId(v.id)
-        console.log('adding node ', id);
-        console.log('dadj: ', JSON.stringify(dadj, null, 2))
-        dmap.addNode(id, dadj)
-        smap.addNode(id, sadj)
-      })
+  .on('value', (snapshot) => {
+    console.log('data loaded')
+    data = snapshot.val()
+    data.paths = data.paths.map(p => {
+      if (_.isEmpty(p.safety)) {
+        p.safety = 3
+      } else {
+        let n = _.size(p.safety)
+        let sum = _.reduce(p.safety, (acc, each, key) => {
+          acc += each.value
+        }, 0)
+        let avg = sum / n
+        p.safety = avg
+      }
+      return p
     })
+    dmap = new Graph()
+    smap = new Graph()
+    data.vertices.forEach((v) => {
+      let dadj = {}
+      let sadj = {}
+      if (!v.adjPaths) {
+        return
+      }
+      v.adjPaths.forEach((pid) => {
+        for (let i = 0; i < data.paths.length; i++) {
+          let q = data.paths[i];
+          if (pid == q.id) {
+            if (q.run[0].id == v.id) {
+              dadj[encId(q.run[1].id)] = q.distance
+              sadj[encId(q.run[1].id)] = 4 - q.safety
+            } else {
+              dadj[encId(q.run[0].id)] = q.distance
+              sadj[encId(q.run[0].id)] = 4 - q.safety
+            }
+            break
+          }
+        }
+      })
+      let id = encId(v.id)
+      //console.log('adding node ', id);
+      //console.log('dadj: ', JSON.stringify(dadj, null, 2))
+      dmap.addNode(id, dadj)
+      smap.addNode(id, sadj)
+    })
+    console.log('data processed')
+  })
+
+app.get('/', (req, res) => {
+  res.send('Hi')
+})
 
 app.get('/api/all', (req, res) => {
   res.json(data)
 })
 
-app.get('/api/shortest', (req, res) => {
-  let s = dmap.path(
-    encId(req.query.from),
-    encId(req.query.to),
-    {
-      cost: true
-    })
+app.get('/api/shortest/:prop', (req, res) => {
+  let map
+  if (req.params.prop == 'safety') {
+    map = smap
+  } else {
+    map = dmap
+  }
+  let s = map.path(encId(req.query.from),
+                   encId(req.query.to),
+                   { cost: true })
   let paths = []
   if (s.path) {
-      for (let i = 0; i < s.path.length-1; i++) {
-        // s.path[i] is a vertex
-        paths.push(hashCode((s.path[i] * s.path[i+1]).toString()))
-      }
+    for (let i = 0; i < s.path.length-1; i++) {
+      // s.path[i] is a vertex
+      paths.push(hashCode((s.path[i] * s.path[i+1]).toString()))
+    }
   }
   res.json({
+    prop: req.params.prop,
     paths: paths,
     cost: s.cost
   })
 })
 
-app.get('/api/edit', (req, res) => {
-  let success = false
-  if (req.query.pass == 'hello') {
+/*
+ * req.params.prop = prop to add value
+ * req.query = {
+ *   pathId: path id
+ *   userId: user id
+ *   value: value to be added
+ * }
+ */
+app.get('/api/add/:prop', (req, res) => {
+  let hit = false;
+  if (req.query.pass == 'hello' &&
+      (req.params.prop == 'safety' || req.params.prop == 'slope')) {
     for (let i = 0; i < data.paths.length; i++) {
-      if (data.paths[i].id == req.query.id) {
-        firebase.database().ref('/paths/' + i + '/safety').set(parseInt(req.query.safety))
-        success = true
+      if (data.paths[i].id == req.query.pathId) {
+        firebase.database().ref()
+          .child('paths').child(i).child(req.params.prop).child(req.query.userId)
+          .set({ 
+            userId: req.query.userId,
+            value: parseInt(req.query.value)
+          })
+          .then(() => {
+            res.sendStatus(200)
+          })
+          .catch((error) => {
+            res.sendStatus(400)
+          })
+        hit = true
         break
       }
     }
   }
-  res.json({success})
+  if (!hit) {
+    res.sendStatus(400)
+  }
 })
 
 app.listen(app.get('port'), () => {
