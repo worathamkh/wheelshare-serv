@@ -80,6 +80,7 @@ firebase.database().ref('/')
         let n = _.size(p.safety)
         let sum = _.reduce(p.safety, (acc, each, key) => {
           acc += each.value
+          return acc
         }, 0)
         let avg = sum / n
         p.safety = avg
@@ -110,8 +111,8 @@ firebase.database().ref('/')
         }
       })
       let id = encId(v.id)
-      //console.log('adding node ', id);
-      //console.log('dadj: ', JSON.stringify(dadj, null, 2))
+      console.log('adding node ', id);
+      console.log('dadj: ', JSON.stringify(dadj, null, 2))
       dmap.addNode(id, dadj)
       smap.addNode(id, sadj)
     })
@@ -167,7 +168,7 @@ app.get('/api/add/:prop', (req, res) => {
         firebase.database().ref()
           .child('paths').child(i).child(req.params.prop).child(req.query.userId)
           .set({ 
-            userId: req.query.userId,
+            //userId: req.query.userId,
             value: parseInt(req.query.value)
           })
           .then(() => {
