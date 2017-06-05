@@ -130,9 +130,21 @@ app.get('/api/all', (req, res) => {
 app.get('/api/path/:id', (req, res) => {
   firebase.database().ref('/paths').once('value')
     .then(snapshot => {
-      res.json(_.find(snapshot.val(), p => {
+      let p = _.find(snapshot.val(), p => {
         return p.id == req.params.id
-      }))
+      })
+      if (_.isEmpty(p.safety)) {
+        p.safety = 3
+      } else {
+        let n = _.size(p.safety)
+        let sum = _.reduce(p.safety, (acc, each, key) => {
+          acc += each.value
+          return acc
+        }, 0)
+        let avg = sum / n
+        p.safety = avg
+      }
+      res.json(p)
     })
     .catch(error => {
       res.sendStatus(400)
