@@ -127,6 +127,18 @@ app.get('/api/all', (req, res) => {
   res.json(data)
 })
 
+app.get('/api/path/:id', (req, res) => {
+  firebase.database().ref('/paths').once('value')
+    .then(snapshot => {
+      res.json(_.find(snapshot.val(), p => {
+        return p.id == req.params.id
+      }))
+    })
+    .catch(error => {
+      res.sendStatus(400)
+    })
+})
+
 app.get('/api/shortest/:prop', (req, res) => {
   let map
   if (req.params.prop == 'safety') {
