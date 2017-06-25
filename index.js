@@ -101,10 +101,10 @@ firebase.database().ref('/')
           if (pid == q.id) {
             if (q.run[0].id == v.id) {
               dadj[encId(q.run[1].id)] = q.distance
-              sadj[encId(q.run[1].id)] = (4 - q.safety) * q.distance
+              sadj[encId(q.run[1].id)] = Math.pow(10, (3 - q.safety)) * q.distance
             } else {
               dadj[encId(q.run[0].id)] = q.distance
-              sadj[encId(q.run[0].id)] = (4 - q.safety) * q.distance
+              sadj[encId(q.run[0].id)] = Math.pow(10, (3 - q.safety)) * q.distance
             }
             break
           }
