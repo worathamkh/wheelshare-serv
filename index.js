@@ -192,7 +192,7 @@ app.get('/api/add/:prop', (req, res) => {
         firebase.database().ref()
           .child('paths').child(i).child(req.params.prop).child(req.query.userId)
           .set({ 
-            //userId: req.query.userId,
+            userId: req.query.userId,
             value: parseInt(req.query.value)
           })
           .then(() => {
