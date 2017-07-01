@@ -1,6 +1,7 @@
 'use strict'
 
 const _ = require('lodash')
+const async = require('async')
 
 const firebase = require('firebase-admin')
 // let Promise = require('promise');
@@ -24,6 +25,28 @@ let app = express()
 
 app.set('port', (process.env.PORT || 5000))
 app.set('json spaces', 2)
+
+function getDistanceFromTwoVertices(v1, v2) {
+  return getDistanceFromLatLonInKm(v1.lat, v1.lng, v2.lat, v2.lng)
+}
+
+function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
 
 function hashCode(str){
   let hash = 0;
@@ -172,6 +195,26 @@ app.get('/api/shortest/:prop', (req, res) => {
     prop: req.params.prop,
     paths: paths,
     cost: s.cost
+  })
+})
+
+app.get('/api/closest', (req, res) => {
+  let u = {
+    id: 0,
+    lat: parseFloat(req.query.lat),
+    lng: parseFloat(req.query.lng)
+  }
+  let minDistance = 99999
+  let closest
+  async.each(data.vertices, (v, callback) => {
+    let d = getDistanceFromTwoVertices(u, v)
+    if (d < minDistance) {
+      closest = v
+      minDistance = d
+    }
+    callback()
+  }, (err) => {
+    res.json(closest)
   })
 })
 

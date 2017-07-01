@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/worathamkh/wheelshare-serv#readme",
   "dependencies": {
+    "async": "^2.5.0",
     "express": "^4.15.3",
     "firebase-admin": "^5.0.0",
     "lodash": "^4.17.4",
